@@ -1,8 +1,8 @@
+require('dotenv').config();
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 chai.use(chaiHttp);
 const http = require('http');
-require('dotenv').config();
 
 const app = require('../../lib/app');
 
