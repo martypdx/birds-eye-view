@@ -2,24 +2,21 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
-describe('Square API', () => {
+describe.only('Item API', () => {
 
-    before(() => dropCollection('squares'));
+    before(() => dropCollection('items'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
     let info = {
-        coords: {
-            x: 1,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
+        itemName: 'walnut',
+        itemStory: 'Oh, look. You found a walnut.'
     };
 
-    it('saves a square', () => {
-        return request.post('/api/squares')
+    it('saves an item', () => {
+        return request.post('/api/items')
             .set('Authorization', adminToken)
             .send(info)
             .then(({ body }) => {
