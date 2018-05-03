@@ -3,52 +3,47 @@ const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 const User = require('../../lib/models/User');
 
-describe('Auth API', () => {
+describe.only('Auth API', () => {
 
-    before(() => dropCollection('tasks'));
-    before(() => dropCollection('fluffs'));
+    before(() => dropCollection('squares'));
+    before(() => dropCollection('levels'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let token = null;
-
-    const fluffs = [
-        { desc: 'You arrive at a freeway.' },
-        { desc: 'There is a wide river here.' },
-        { desc: 'You find a tall dead tree.' }
-    ];
-
+    
+    let square = {
+        coords: {
+            x: 1,
+            y: 0
+        },
+        squareDesc: 'You are here. You see things.'
+    };
+    
     before(() => {
-        fluffs.forEach(obj => {
-            request.post('/api/fluffs')
-                .set('Authorization', adminToken)
-                .send(obj)
-                .then();
-        });
+        return request.post('/api/squares')
+            .set('Authorization', adminToken)
+            .send(square)
+            .then(({ body }) => {
+                square._id = body._id;
+            });
     });
 
-    let task = {
-        number: 1,
-        startingDesc: 'You begin to feel hungry. Better find some food.',
-        requiredItem: { 
-            type: 'walnut',
-            itemDesc: 'You discover a walnut, but cannot crack the shell with your beak. You pick it up.'
-        },
-        endpoint: {
-            desc: 'You arrive at an intersection, crossed by telephone wires.',
-            unresolved: 'If you needed to crack something, this would be a good spot for it.',
-            resolved: 'You drop the walnut onto the street. A car rolls over it, cracking the shell, and you carefully swoop down and devour the food inside.'
-        }
-    };
-
     before(() => {
-        return request.post('/api/tasks')
+        const level = {
+            levelNum: 1,
+            squares: [{
+                squareId: square._id
+            }]
+        };
+        return request.post('/api/levels')
             .set('Authorization', adminToken)
-            .send(task)
+            .send(level)
             .then();
     });
+
+    let token = null;
 
     let user = {
         name: 'Master Blaster',
@@ -87,15 +82,15 @@ describe('Auth API', () => {
             });
     });
     
-    it('assigns user a task and generates a set of game options for user', () => {
-        return User.findById(user.id)
-            .then(user => {
-                assert.ok(user.currentTask);
-                assert.ok(user.options.n.action);
-                assert.ok(user.options.s.action);
-                assert.ok(user.options.e.action);
-                assert.ok(user.options.w.action);
-            });
-    });
+    // it('assigns user a task and generates a set of game options for user', () => {
+    //     return User.findById(user.id)
+    //         .then(user => {
+    //             assert.ok(user.currentTask);
+    //             assert.ok(user.options.n.action);
+    //             assert.ok(user.options.s.action);
+    //             assert.ok(user.options.e.action);
+    //             assert.ok(user.options.w.action);
+    //         });
+    // });
 
 });

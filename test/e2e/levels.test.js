@@ -3,7 +3,7 @@ const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
 
-describe.only('Level API', () => {
+describe('Level API', () => {
     before(() => dropCollection('users'));
     before(() => dropCollection('levels'));
     before(() => dropCollection('squares'));
