@@ -10,13 +10,8 @@ describe('User model', () => {
             name: 'Tasha Zuniga',
             hash: 'notpassword',
             inventory: [],
-            currentTask: Types.ObjectId(),
-            options: {
-                n: { action: 'interact' },
-                s: { action: 'look' },
-                e: { action: 'resolve' },
-                w: { action: 'look' }
-            },
+            currentLevel: Types.ObjectId(),
+            currentSquare: Types.ObjectId(),
             roles: ['theBoss']
         };
         const user = new User(fullInput);
