@@ -2,29 +2,45 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
-describe('Item API', () => {
+describe('Endpoint API', () => {
 
-    before(() => dropCollection('items'));
+    before(() => dropCollection('endpoints'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let info = {
+    let item = {
         itemName: 'walnut',
         itemStory: 'Oh, look. You found a walnut.'
     };
+    
+    let endpoint = {
+        endpointStory: {
+            unresolved: 'Nope not yet.',
+            resolved: 'You may pass.'
+        }
+    };
 
-    it('saves an item', () => {
+    before(() => {
         return request.post('/api/items')
             .set('Authorization', adminToken)
-            .send(info)
+            .send(item)
+            .then(({ body }) => {
+                endpoint.requiredItem = body._id;
+            });
+    });
+
+    it('saves an endpoint', () => {
+        return request.post('/api/endpoints')
+            .set('Authorization', adminToken)
+            .send(endpoint)
             .then(({ body }) => {
                 const { _id, __v } = body;
                 assert.ok(_id);
                 assert.strictEqual(__v, 0);
                 assert.deepEqual(body, {
-                    ...info,
+                    ...endpoint,
                     _id,
                     __v
                 });
