@@ -33,7 +33,6 @@ class Game {
             .then(({ auth, name, password }) => this.api[auth]({ name, password }))
             .then(({ token, name, userId }) => {
                 this.user = name;
-                this.api.token = token;
                 this.presentSquare(userId);
             })
             .catch(err => {
@@ -43,7 +42,7 @@ class Game {
             });
     }
     initSquare(userId) {
-        this.api.getSquare(userId, this.api.token)
+        this.api.getSquare(userId)
             .then(square=> {
                 lineBreak();                
                 console.log(square.intro.replace('(User Name)', this.user).blue);
