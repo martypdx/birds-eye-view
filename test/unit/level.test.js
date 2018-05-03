@@ -8,7 +8,6 @@ describe('Level Model', () => {
     it('is a valid good model', () => {
         const data = {
             levelNum: 1,
-            introDesc: 'This is a pretty park',
             squares: [{
                 squareId: Types.ObjectId(),
                 itemId: Types.ObjectId(),
@@ -18,14 +17,12 @@ describe('Level Model', () => {
         const level = new Level(data);
         data._id = level._id;
         assert.ok(level.levelNum);
-        assert.ok(level.introDesc);
         assert.ok(level.squares);
     });
 
     it('has required fields', () => {
         const level = new Level({});
-        const errors = getErrors(level.validateSync(), 2);
+        const errors = getErrors(level.validateSync(), 1);
         assert.strictEqual(errors.levelNum.kind, 'required');
-        assert.strictEqual(errors.introDesc.kind, 'required');
     });
 });
