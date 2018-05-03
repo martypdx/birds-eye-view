@@ -34,7 +34,7 @@ class Game {
             .then(({ token, name, userId }) => {
                 this.user = name;
                 this.api.token = token;
-                this.presentTask(userId);
+                this.presentSquare(userId);
             })
             .catch(err => {
                 lineBreak();
@@ -42,11 +42,11 @@ class Game {
                 this.start();
             });
     }
-    presentTask(userId) {
-        this.api.getTask(userId, this.api.token)
-            .then(task => {
+    initSquare(userId) {
+        this.api.getSquare(userId, this.api.token)
+            .then(square=> {
                 lineBreak();                
-                console.log(task.intro.replace('(User Name)', this.user).blue);
+                console.log(square.intro.replace('(User Name)', this.user).blue);
                 this.showOptions(userId);
             });
     }
@@ -62,25 +62,73 @@ class Game {
                 { name: 'West', value: 'w' }]
         })
             .then(({ direction }) => {
-                this.resolveAction(userId, direction);
+                this.resolveDirection(userId, direction);
             });
     }
-    resolveAction(userId, direction) {       
-        this.api.getOption(userId, direction)
+
+    resolveDirection(userId, direction) {
+        this.api.getUserCoords(userId)
             .then(body => {
-                switch(body.action) {
-                    case 'look':
-                        lineBreak();
-                        console.log(`${body.info} You fly back.`.cyan);
-                        this.showOptions(userId);
-                        break;
-                    case 'interact':
-                        this.addToInventory(userId, body.info);
-                        break;
-                    case 'resolve':
-                        this.completeTask(userId, body.info);
+
+            })
+
+        
+        switch(direction) {
+            case 'n':
+                ++y;
+                this.newCoordsInfo(userId);
+            case 's':
+                --y;
+            case 'e':
+                ++x;
+            case 'w':
+                --x;
+                
+        }
+        this.api.updateIfExists(userId, x, y)
+            .then(body => {
+                if(body) {
+                    this.whatIsInSquare(userId);
+                } else {
+                    console.log('sorry');
+                    this.getOptions(userId);
                 }
-            });   
+            })
+    }
+    whatIsInSquare(userId) {
+        this.api.matchSquare(userId)
+            .then(body => {
+                if(!itemId && !endpointId) {
+                    rollForHazard();
+                } else if(itemId && endpointId) {
+                    this.resolveSpecial();
+                } else if(endpointId) {
+                    this.resolveEndpoint();
+                } else if(itemId) {
+                    this.resolveItem();
+                } 
+            })
+    }
+
+
+
+
+    // resolveAction(userId, direction) {       
+    //     this.api.getOption(userId, direction)
+    //         .then(body => {
+    //             switch(body.action) {
+    //                 case 'look':
+    //                     lineBreak();
+    //                     console.log(`${body.info} You fly back.`.cyan);
+    //                     this.showOptions(userId);
+    //                     break;
+    //                 case 'interact':
+    //                     this.addToInventory(userId, body.info);
+    //                     break;
+    //                 case 'resolve':
+    //                     this.completeTask(userId, body.info);
+    //             }
+    //         });   
     }
     addToInventory(userId, itemInfo) {
         this.api.getInventory(userId)

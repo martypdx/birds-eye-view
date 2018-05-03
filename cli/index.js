@@ -28,13 +28,16 @@ const service = {
             });
 
     },
-    getTask(userId) {
-        return request.get(`${server}/api/users/${userId}/intro`)
+    getLevel(userId) {
+        return request.get(`${server}/api/users/${userId}/square`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
+    getUserCoords(userId) {
+        return
+    }
     getOption(userId, direction) {
         return request.get(`${server}/api/users/${userId}/options/${direction}`)
             .set('Authorization', token)
