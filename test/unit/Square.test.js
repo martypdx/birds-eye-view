@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const Square = require('../../lib/models/Square');
 const { getErrors } = require('./helpers');
 
-describe.only('Square Unit Test', () => {
+describe('Square Unit Test', () => {
 
     it('good valid model', () => {
         const fullInput = {
