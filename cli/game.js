@@ -33,7 +33,6 @@ class Game {
             .then(({ auth, name, password }) => this.api[auth]({ name, password }))
             .then(({ token, name, userId }) => {
                 this.user = name;
-                this.api.token = token;
                 this.presentSquare(userId);
             })
             .catch(err => {
@@ -43,7 +42,7 @@ class Game {
             });
     }
     initSquare(userId) {
-        this.api.getSquare(userId, this.api.token)
+        this.api.getInitialDesc(userId)
             .then(square=> {
                 lineBreak();                
                 console.log(square.intro.replace('(User Name)', this.user).blue);
@@ -88,24 +87,24 @@ class Game {
         this.api.updateIfExists(userId, x, y)
             .then(body => {
                 if(body) {
-                    this.whatIsInSquare(userId);
+                    this.whatIsInSquare(userId, body.currentLevel, body.currentSquare);
                 } else {
                     console.log('sorry');
-                    this.getOptions(userId);
+                    this.showOptions(userId);
                 }
             })
     }
-    whatIsInSquare(userId) {
-        this.api.matchSquare(userId)
+    whatIsInSquare(userId, currentLevel, currentSquare) {
+        this.api.getSquareInfo(currentLevel, currentSquare)
             .then(body => {
                 if(!itemId && !endpointId) {
-                    rollForHazard();
+                    rollForHazard(userId); // write method
                 } else if(itemId && endpointId) {
-                    this.resolveSpecial();
+                    this.resolveSpecial(userId);  // write method
                 } else if(endpointId) {
-                    this.resolveEndpoint();
+                    this.resolveEndpoint(userId);  // write method
                 } else if(itemId) {
-                    this.resolveItem();
+                    this.resolveItem(userId);  // write method
                 } 
             })
     }
