@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
-describe.only('Square API', () => {
+describe('Square API', () => {
 
     before(() => dropCollection('squares'));
     before(() => dropCollection('users'));
