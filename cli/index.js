@@ -26,23 +26,34 @@ const service = {
                 token = body.token;
                 return body;
             });
-
     },
-    getLevel(userId) {
-        return request.get(`${server}/api/users/${userId}/square`)
+    getInitialDesc(userId) { // TODO: match this with .get('/:id/square')
+        return request.get(`${server}/api/users/${userId}/intro`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body;
+                return body; // return desc from square 1
             });
     },
-    getUserCoords(userId) {
-        return
-    }
-    getOption(userId, direction) {
-        return request.get(`${server}/api/users/${userId}/options/${direction}`)
+    getUserCoords(userId) { // TODO: write & remember to take current level into account
+        return request.get(`${server}/api/users/${userId}/coords`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body;
+                return body; // return { x: someNum, y: someNum }
+            });
+    },
+    updateUserIfSquareExists(userId, x, y) { // TODO: write & remember to take current level into account
+        return request.put(`${server}/api/users/${userId}/square`)
+            .send({ x: x, y: y })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body; // return { updated: false } or similar if the square doesn't exist
+            });
+    },
+    getSquareInfo(currentLevel, currentSquare) { // TODO: write
+        return request.get(`${server}/api/levels/${currentLevel}/squares/${currentSquare}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body; // return populated info about everything in square
             });
     },
     addItem(userId, item) {
@@ -67,6 +78,13 @@ const service = {
                 return body;
             });
     },
+    getRandomHazard() { // TODO: write
+        return request.get(`${server}/api/hazards`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body; // return $sample { size: 1 }
+            });
+    },
     getLevel(userId) {
         return request.get(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
@@ -74,12 +92,12 @@ const service = {
                 return body;
             });
     },
-    updateLevel(userId, newLevel) {
+    updateUserIfLevelExists(userId, newLevel) {
         return request.put(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
             .send({ level: newLevel })
             .then(({ body }) => {
-                return body;
+                return body; // return something like { updated: false } if no more levels (so they can win!)
             });
     }
 };
