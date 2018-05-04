@@ -27,6 +27,26 @@ describe('Hazard API', () => {
                     _id,
                     __v
                 });
+                hazard._id = body._id;
+            });
+    });
+    
+    it('gets a random hazard', () => {
+        let hazard2 = {
+            hazardStory: 'Oh no, a cat.'
+        };
+
+        return request.post('/api/hazards')
+            .set('Authorization', adminToken)
+            .send(hazard2)
+            .then(({ body }) => {
+                hazard2._id = body._id;
+                return request.get('/api/hazards')
+                    .set('Authorization', adminToken);
+            })
+            .then(({ body }) => {
+                assert.ok(body._id);
+                assert.ok(body.hazardStory);
             });
     });
 });
