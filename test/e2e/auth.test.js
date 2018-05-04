@@ -15,7 +15,7 @@ describe('Auth API', () => {
     
     let square = {
         coords: {
-            x: 1,
+            x: 0,
             y: 0
         },
         squareDesc: 'You are here. You see things.'
@@ -30,20 +30,22 @@ describe('Auth API', () => {
             });
     });
 
+    const level = {
+        levelNum: 1,
+        squares: []
+    };
+
     before(() => {
-        const level = {
-            levelNum: 1,
-            squares: [{
-                squareId: square._id
-            }]
-        };
+        level.squares.push({ squareId: square._id });
         return request.post('/api/levels')
             .set('Authorization', adminToken)
             .send(level)
-            .then();
+            .then(({ body }) => {
+                level._id = body._id;
+            });
     });
 
-    let token = null;
+    let token = '';
 
     let user = {
         name: 'Master Blaster',
@@ -82,15 +84,12 @@ describe('Auth API', () => {
             });
     });
     
-    // it('assigns user a task and generates a set of game options for user', () => {
-    //     return User.findById(user.id)
-    //         .then(user => {
-    //             assert.ok(user.currentTask);
-    //             assert.ok(user.options.n.action);
-    //             assert.ok(user.options.s.action);
-    //             assert.ok(user.options.e.action);
-    //             assert.ok(user.options.w.action);
-    //         });
-    // });
+    it('assigns user a starting square and level', () => {
+        return User.findById(user.id)
+            .then(user => {
+                assert.strictEqual(user.currentLevel.toJSON(), level._id);
+                assert.strictEqual(user.currentSquare.toJSON(), level.squares[0].squareId);
+            });
+    });
 
 });
