@@ -151,4 +151,13 @@ describe('User API', () => {
                 assert.strictEqual(body.currentSquare, square2._id); 
             });
     });
+    
+    it('returns false if no square exists', () => {
+        return request.put(`/api/users/${user.id}/square`)
+            .send({ x: 2, y: 0 })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, { updated: false }); 
+            });
+    });
 });
