@@ -13,7 +13,7 @@ describe('User API', () => {
 
     let square = {
         coords: {
-            x: 1,
+            x: 0,
             y: 0
         },
         squareDesc: 'You are here. You see things.'
