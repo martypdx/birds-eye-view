@@ -57,5 +57,11 @@ describe('User API', () => {
             });
     });
 
-
+    it('gets a user\'s current coordinates', () => {
+        return request.get(`/api/users/${user.id}/coords`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, square.coords);
+            });
+    });
 });
