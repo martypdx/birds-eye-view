@@ -3,7 +3,7 @@ const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 const User = require('../../lib/models/User');
 
-describe.only('Auth API', () => {
+describe('Auth API', () => {
 
     before(() => dropCollection('squares'));
     before(() => dropCollection('levels'));
