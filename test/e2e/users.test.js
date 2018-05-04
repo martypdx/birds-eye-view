@@ -18,6 +18,7 @@ describe('User API', () => {
         },
         squareDesc: 'You are here. You see things.'
     };
+
     
     before(() => {
         return request.post('/api/squares')
@@ -27,6 +28,7 @@ describe('User API', () => {
                 square._id = body._id;
             });
     });
+
 
     before(() => {
         const level = {
@@ -57,5 +59,12 @@ describe('User API', () => {
             });
     });
 
+    it('gets initial description', () => {
+        return request.get(`/api/users/${user.id}/intro`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body.intro, 'You are here. You see things.');
+            });
+    });
 
 });
