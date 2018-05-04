@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const Square = require('../../lib/models/Square');
 const { getErrors } = require('./helpers');
+const { Types } = require('mongoose');
 
 describe('Square Unit Test', () => {
 
@@ -10,7 +11,9 @@ describe('Square Unit Test', () => {
                 x: 0,
                 y: 0
             },
-            squareDesc: 'A firey, burning hellscape.'
+            squareDesc: 'A firey, burning hellscape.',
+            itemHere: Types.ObjectId(),
+            endpointHere: Types.ObjectId()
         };
         const square = new Square(fullInput);
         fullInput._id = square._id;

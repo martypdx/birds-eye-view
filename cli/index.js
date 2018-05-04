@@ -27,39 +27,39 @@ const service = {
                 return body;
             });
     },
-    getInitialDesc(userId) { // TODO: match this with .get('/:id/square')
+    getInitialDesc(userId) {
         return request.get(`${server}/api/users/${userId}/intro`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return desc from square 1
+                return body;
             });
     },
-    getUserCoords(userId) { // TODO: write & remember to take current level into account
+    getUserCoords(userId) {
         return request.get(`${server}/api/users/${userId}/coords`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return { x: someNum, y: someNum }
+                return body;
             });
     },
-    updateUserIfSquareExists(userId, x, y) { // TODO: write & remember to take current level into account
+    updateUserIfSquareExists(userId, x, y) {
         return request.put(`${server}/api/users/${userId}/square`)
             .send({ x: x, y: y })
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return { updated: false } or similar if the square doesn't exist
+                return body;
             });
     },
-    getSquareInfo(currentLevel, currentSquare) { // TODO: write
-        return request.get(`${server}/api/levels/${currentLevel}/squares/${currentSquare}`)
+    getSquareInfo(currentLevel, currentSquare) {
+        return request.get(`${server}/api/squares/${currentSquare}`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return populated info about everything in square
+                return body;
             });
     },
     addItem(userId, item) {
         return request.post(`${server}/api/users/${userId}/inventory`)
             .set('Authorization', token)
-            .send({ type: item })
+            .send({ item: item })
             .then(({ body }) => {
                 return body;
             });
@@ -71,33 +71,25 @@ const service = {
                 return body;
             });
     },
-    deleteInventory(userId) {
-        return request.delete(`${server}/api/users/${userId}/inventory`)
+    deleteInventory(userId, itemId) {
+        return request.delete(`${server}/api/users/${userId}/inventory/${itemId}`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    getRandomHazard() { // TODO: write
+    getRandomHazard() {
         return request.get(`${server}/api/hazards`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return $sample { size: 1 }
-            });
-    },
-    getLevel(userId) {
-        return request.get(`${server}/api/users/${userId}/level`)
-            .set('Authorization', token)
-            .then(({ body }) => {
                 return body;
             });
     },
-    updateUserIfLevelExists(userId, newLevel) {
+    updateUserIfLevelExists(userId) {
         return request.put(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
-            .send({ level: newLevel })
             .then(({ body }) => {
-                return body; // return something like { updated: false } if no more levels (so they can win!)
+                return body;
             });
     }
 };
