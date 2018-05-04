@@ -87,6 +87,7 @@ describe('Auth API', () => {
     it('assigns user a starting square', () => {
         return User.findById(user.id)
             .then(user => {
+                assert.strictEqual(user.currentLevel.toJSON(), level._id);                
                 assert.strictEqual(user.currentSquare.toJSON(), level.squares[0].squareId);
             });
     });

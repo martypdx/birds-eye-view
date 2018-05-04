@@ -11,6 +11,7 @@ describe('User model', () => {
             hash: 'notpassword',
             inventory: [],
             currentSquare: Types.ObjectId(),
+            currentLevel: Types.ObjectId(),
             roles: ['theBoss']
         };
         const user = new User(fullInput);
