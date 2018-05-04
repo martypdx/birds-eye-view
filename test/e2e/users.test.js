@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
-describe('User API', () => {
+describe.only('User API', () => {
 
     before(() => dropCollection('squares'));
     before(() => dropCollection('levels'));
@@ -18,6 +18,14 @@ describe('User API', () => {
         },
         squareDesc: 'You are here. You see things.'
     };
+
+    let origin = {
+        coords: {
+            x: 0,
+            y: 0
+        },
+        squareDesc: 'hey'
+    };
     
     before(() => {
         return request.post('/api/squares')
@@ -25,6 +33,15 @@ describe('User API', () => {
             .send(square)
             .then(({ body }) => {
                 square._id = body._id;
+            });
+    });
+
+    before(() => {
+        return request.post('/api/squares')
+            .set('Authorization', adminToken)
+            .send(origin)
+            .then(({ body }) => {
+                origin._id = body._id;
             });
     });
 
@@ -52,9 +69,18 @@ describe('User API', () => {
         return request.post('/api/auth/signup')
             .send(user)
             .then(({ body }) => {
+                user.currentSquare = origin._id;
                 user.id = body.userId;
                 token = body.token;
             });
+    });
+
+    it('gets initial description', () => {
+        return request.get(`/api/users/${user.id}/intro`)
+            .then(({ body }) => {
+                assert.deepEqual(body.intro, 'hey');
+            });
+
     });
 
 
