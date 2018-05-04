@@ -33,7 +33,7 @@ class Game {
             .then(({ auth, name, password }) => this.api[auth]({ name, password }))
             .then(({ token, name, userId }) => {
                 this.user = name;
-                this.presentSquare(userId);
+                this.initSquare(userId);
             })
             .catch(err => {
                 lineBreak();
@@ -69,32 +69,33 @@ class Game {
         this.api.getUserCoords(userId)
             .then(body => {
 
-            })
+                let { x, y } = body;
+                switch(direction) {
+                    case 'n':
+                        y++;
+                        break;
+                    case 's':
+                        y--;
+                        break;
+                    case 'e':
+                        x++;
+                        break;
+                    case 'w':
+                        x--;    
+                }
 
-        
-        switch(direction) {
-            case 'n':
-                ++y;
-                this.newCoordsInfo(userId);
-            case 's':
-                --y;
-            case 'e':
-                ++x;
-            case 'w':
-                --x;
-                
-        }
-        this.api.updateIfExists(userId, x, y)
+                return this.api.updateUserIfSquareExists(userId, x, y);
+            })
             .then(body => {
                 if(body) {
-                    this.whatIsInSquare(userId, body.currentLevel, body.currentSquare);
+                    this.api.assessSquare(userId, body.currentLevel, body.currentSquare);
                 } else {
                     console.log('sorry');
                     this.showOptions(userId);
                 }
-            })
+            });
     }
-    whatIsInSquare(userId, currentLevel, currentSquare) {
+    assessSquare(userId, currentLevel, currentSquare) {
         this.api.getSquareInfo(currentLevel, currentSquare)
             .then(body => {
                 if(!itemId && !endpointId) {
@@ -106,7 +107,7 @@ class Game {
                 } else if(itemId) {
                     this.resolveItem(userId);  // write method
                 } 
-            })
+            });
     }
 
 
@@ -128,7 +129,7 @@ class Game {
     //                     this.completeTask(userId, body.info);
     //             }
     //         });   
-    }
+    // }
     addToInventory(userId, itemInfo) {
         this.api.getInventory(userId)
             .then(body => {
