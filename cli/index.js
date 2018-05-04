@@ -49,11 +49,11 @@ const service = {
                 return body;
             });
     },
-    getSquareInfo(currentLevel, currentSquare) { // TODO: write
-        return request.get(`${server}/api/levels/${currentLevel}/squares/${currentSquare}`)
+    getSquareInfo(currentLevel, currentSquare) {
+        return request.get(`${server}/api/squares/${currentSquare}`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return populated info about everything in square
+                return body;
             });
     },
     addItem(userId, item) {
@@ -85,18 +85,11 @@ const service = {
                 return body; // return $sample { size: 1 }
             });
     },
-    getLevel(userId) {
-        return request.get(`${server}/api/users/${userId}/level`)
-            .set('Authorization', token)
-            .then(({ body }) => {
-                return body;
-            });
-    },
     updateUserIfLevelExists(userId) {
         return request.put(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return something like { updated: false } if no more levels (so they can win!)
+                return body;
             });
     }
 };
