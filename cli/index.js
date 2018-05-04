@@ -49,17 +49,17 @@ const service = {
                 return body;
             });
     },
-    getSquareInfo(currentLevel, currentSquare) {
+    getSquareInfo(currentSquare) {
         return request.get(`${server}/api/squares/${currentSquare}`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    addItem(userId, item) {
+    addItem(userId, itemId) {
         return request.post(`${server}/api/users/${userId}/inventory`)
             .set('Authorization', token)
-            .send({ item: item })
+            .send({ item: itemId })
             .then(({ body }) => {
                 return body;
             });
@@ -78,6 +78,13 @@ const service = {
                 return body;
             });
     },
+    clearInventory(userId) {
+        return request.delete(`${server}/api/users/${userId}/inventory`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
     getRandomHazard() {
         return request.get(`${server}/api/hazards`)
             .set('Authorization', token)
@@ -85,8 +92,16 @@ const service = {
                 return body;
             });
     },
-    updateUserIfLevelExists(userId) {
+    getUserLevel(userId) {
+        return request.get(`${server}/api/users/${userId}/level`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    updateUserIfLevelExists(userId, newLevel) {
         return request.put(`${server}/api/users/${userId}/level`)
+            .send({ levelNum: newLevel })
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;

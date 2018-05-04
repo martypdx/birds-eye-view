@@ -157,7 +157,7 @@ describe('User API', () => {
             .send({ x: 2, y: 0 })
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, { updated: false }); 
+                assert.deepEqual(body, { currentSquare: null }); 
             });
     });
 });
