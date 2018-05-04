@@ -9,13 +9,14 @@ describe('User model', () => {
         const fullInput = {
             name: 'Tasha Zuniga',
             hash: 'notpassword',
-            inventory: [],
+            inventory: [{ item: Types.ObjectId() }],
             currentSquare: Types.ObjectId(),
             currentLevel: Types.ObjectId(),
             roles: ['theBoss']
         };
         const user = new User(fullInput);
         fullInput._id = user._id;
+        fullInput.inventory[0]._id = user.inventory[0]._id;
         assert.deepEqual(user.toJSON(), fullInput);
         assert.isUndefined(user.validateSync());
     });
