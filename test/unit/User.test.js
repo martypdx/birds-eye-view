@@ -10,7 +10,6 @@ describe('User model', () => {
             name: 'Tasha Zuniga',
             hash: 'notpassword',
             inventory: [],
-            currentLevel: Types.ObjectId(),
             currentSquare: Types.ObjectId(),
             roles: ['theBoss']
         };
