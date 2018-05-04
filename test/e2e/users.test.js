@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
+const User = require('../../lib/models/User');
 
 describe('User API', () => {
 
@@ -43,20 +44,40 @@ describe('User API', () => {
             });
     });
 
+    let square2 = {
+        coords: {
+            x: 1,
+            y: 0
+        },
+        squareDesc: 'You are here. You see things.'
+    };
+    
     before(() => {
-        const level = {
-            levelNum: 1,
-            squares: [{
-                squareId: square._id
-            }]
-        };
+        return request.post('/api/squares')
+            .set('Authorization', adminToken)
+            .send(square2)
+            .then(({ body }) => {
+                square2._id = body._id;
+            });
+    });
+
+    const level = {
+        levelNum: 1,
+        squares: []
+    };
+
+    before(() => {
+        level.squares.push({ squareId: square._id });
+        level.squares.push({ squareId: square2._id });
         return request.post('/api/levels')
             .set('Authorization', adminToken)
             .send(level)
-            .then();
+            .then(({ body }) => {
+                level._id = body._id;
+            });
     });
 
-    let token = null;
+    let token = '';
 
     let user = {
         name: 'Master Blaster',
@@ -67,8 +88,13 @@ describe('User API', () => {
         return request.post('/api/auth/signup')
             .send(user)
             .then(({ body }) => {
-                user.id = body.userId;
                 token = body.token;
+                user.id = body.userId;
+                return User.findById(user.id);
+            })
+            .then(u => {
+                // console.log(user);
+                u.currentLevel = user.currentLevel;
             });
     });
 
@@ -114,6 +140,15 @@ describe('User API', () => {
             .set('Authorization', token)
             .then(({ body }) => {
                 assert.deepEqual(body.intro, 'You are here. You see things.');
+            });
+    });
+
+    it('updates a user\'s square, if one exists in the direction they\'ve tried to move', () => {
+        return request.put(`/api/users/${user.id}/square`)
+            .send({ x: 1, y: 0 })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.strictEqual(body.currentSquare, square2._id); 
             });
     });
 });
