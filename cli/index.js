@@ -78,11 +78,11 @@ const service = {
                 return body;
             });
     },
-    getRandomHazard() { // TODO: write
+    getRandomHazard() {
         return request.get(`${server}/api/hazards`)
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return $sample { size: 1 }
+                return body;
             });
     },
     updateUserIfLevelExists(userId) {
