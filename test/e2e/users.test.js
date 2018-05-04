@@ -32,8 +32,7 @@ describe('User API', () => {
         },
         squareDesc: 'You are here. You see things.'
     };
-
-    
+ 
     before(() => {
         square.itemHere = item._id;
         return request.post('/api/squares')
@@ -43,7 +42,6 @@ describe('User API', () => {
                 square._id = body._id;
             });
     });
-
 
     before(() => {
         const level = {
@@ -79,18 +77,21 @@ describe('User API', () => {
             .set('Authorization', token)
             .send({ item: square.itemHere })
             .then(({ body }) => {
-                console.log(body);
-                assert.deepEqual([square.itemHere], body.inventory);
+                assert.deepEqual(body.inventory, [{
+                    _id: body.inventory[0]._id,
+                    ...{ item: square.itemHere }
+                }]);
+                user.inventory = body.inventory;
             });
     });
 
-    // it('gets inventory', () => {
-    //     return request.get(`/api/users/${user.id}/inventory`)
-    //         .set('Authorization', token)
-    //         .then(({ body }) => {
-    //             assert.deepEqual([task1.requiredItem.type], body.inventory);
-    //         });
-    // });
+    it('gets inventory', () => {
+        return request.get(`/api/users/${user.id}/inventory`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body.inventory, user.inventory);
+            });
+    });
 
     // it('deletes an item from inventory', () => {
     //     return request.delete(`/api/users/${user.id}/inventory`)
