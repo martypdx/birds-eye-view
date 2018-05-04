@@ -36,6 +36,7 @@ describe('Level API', () => {
                 squareId: square._id
             }]
         };
+        
         return request.post('/api/levels')
             .set('Authorization', adminToken)
             .send(level)
