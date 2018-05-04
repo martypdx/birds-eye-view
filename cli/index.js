@@ -59,7 +59,7 @@ const service = {
     addItem(userId, item) {
         return request.post(`${server}/api/users/${userId}/inventory`)
             .set('Authorization', token)
-            .send({ type: item })
+            .send({ itemName: item })
             .then(({ body }) => {
                 return body;
             });

@@ -132,14 +132,14 @@ class Game {
     addToInventory(userId, itemInfo) {
         this.api.getInventory(userId)
             .then(body => {
-                if(body.inventory[0] === itemInfo.type) {
+                if(body.inventory[0] === itemInfo.itemName) {
                     lineBreak();                    
                     console.log(`This is where you found your ${body.inventory[0]}. You fly back.`.magenta);
                     this.showOptions(userId);
                 } else {
                     lineBreak();
                     console.log(itemInfo.itemDesc.cyan);
-                    this.api.addItem(userId, itemInfo.type)
+                    this.api.addItem(userId, itemInfo.itemName)
                         .then(body => {
                             lineBreak();                
                             console.log(`You fly back with a ${body.inventory[0]}.`.magenta);

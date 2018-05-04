@@ -11,6 +11,20 @@ describe('User API', () => {
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
+    let item = {
+        itemName: 'walnut',
+        itemStory: 'Oh, look. You found a walnut.'
+    };
+
+    before(() => {
+        return request.post('/api/items')
+            .set('Authorization', adminToken)
+            .send(item)
+            .then(({ body }) => {
+                item._id = body._id;
+            });
+    });
+
     let square = {
         coords: {
             x: 0,
@@ -21,6 +35,7 @@ describe('User API', () => {
 
     
     before(() => {
+        square.itemHere = item._id;
         return request.post('/api/squares')
             .set('Authorization', adminToken)
             .send(square)
@@ -58,6 +73,32 @@ describe('User API', () => {
                 token = body.token;
             });
     });
+
+    it('adds an item to inventory', () => {
+        return request.post(`/api/users/${user.id}/inventory`)
+            .set('Authorization', token)
+            .send({ item: square.itemHere })
+            .then(({ body }) => {
+                console.log(body);
+                assert.deepEqual([square.itemHere], body.inventory);
+            });
+    });
+
+    // it('gets inventory', () => {
+    //     return request.get(`/api/users/${user.id}/inventory`)
+    //         .set('Authorization', token)
+    //         .then(({ body }) => {
+    //             assert.deepEqual([task1.requiredItem.type], body.inventory);
+    //         });
+    // });
+
+    // it('deletes an item from inventory', () => {
+    //     return request.delete(`/api/users/${user.id}/inventory`)
+    //         .set('Authorization', token)
+    //         .then(({ body }) => {
+    //             assert.deepEqual([], body.inventory);
+    //         });
+    // });
 
     it('gets a user\'s current coordinates', () => {
         return request.get(`/api/users/${user.id}/coords`)
