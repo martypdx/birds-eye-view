@@ -41,12 +41,12 @@ const service = {
                 return body;
             });
     },
-    updateUserIfSquareExists(userId, x, y) { // TODO: write & remember to take current level into account
+    updateUserIfSquareExists(userId, x, y) {
         return request.put(`${server}/api/users/${userId}/square`)
             .send({ x: x, y: y })
             .set('Authorization', token)
             .then(({ body }) => {
-                return body; // return { updated: false } or similar if the square doesn't exist
+                return body;
             });
     },
     getSquareInfo(currentLevel, currentSquare) { // TODO: write
@@ -92,10 +92,9 @@ const service = {
                 return body;
             });
     },
-    updateUserIfLevelExists(userId, newLevel) {
+    updateUserIfLevelExists(userId) {
         return request.put(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
-            .send({ level: newLevel })
             .then(({ body }) => {
                 return body; // return something like { updated: false } if no more levels (so they can win!)
             });
