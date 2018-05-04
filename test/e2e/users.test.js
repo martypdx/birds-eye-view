@@ -93,13 +93,13 @@ describe('User API', () => {
             });
     });
 
-    // it('deletes an item from inventory', () => {
-    //     return request.delete(`/api/users/${user.id}/inventory`)
-    //         .set('Authorization', token)
-    //         .then(({ body }) => {
-    //             assert.deepEqual([], body.inventory);
-    //         });
-    // });
+    it('deletes an item from inventory', () => {
+        return request.delete(`/api/users/${user.id}/inventory/${item._id}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, { removed: { item: item._id } });
+            });
+    });
 
     it('gets a user\'s current coordinates', () => {
         return request.get(`/api/users/${user.id}/coords`)

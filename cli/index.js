@@ -71,8 +71,8 @@ const service = {
                 return body;
             });
     },
-    deleteInventory(userId) {
-        return request.delete(`${server}/api/users/${userId}/inventory`)
+    deleteInventory(userId, itemId) {
+        return request.delete(`${server}/api/users/${userId}/inventory/${itemId}`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
