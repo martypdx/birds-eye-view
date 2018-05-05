@@ -87,9 +87,9 @@ class Game {
             })
             .then(body => {
                 if(body.currentSquare) {
-                    this.assessSquare(userId, body.currentLevel, body.currentSquare);
+                    this.assessSquare(userId, body.currentSquare);
                 } else {
-                    console.log('Sorry, can\'t go that way.');
+                    console.log('That direction is outside your territory. Please try another.');
                     this.showOptions(userId);
                 }
             });
@@ -101,16 +101,25 @@ class Game {
                     this.resolveEndpoint(userId, body);
                 } else if(body.itemHere) {
                     this.resolveItem(userId, body);
-                } 
+                } else {
+                    console.log(`${body.squareDesc}`);
+                    this.showOptions(userId);
+                }
+            });
+    }
+    compareInventory(userId, squareInfo, itemToMatch) {
+        this.api.getInventory(userId)
+            .then(body => {
+                const itemFilter = body.inventory.filter(obj => obj.item._id === itemToMatch);
+                return itemFilter;
             });
     }
     resolveItem(userId, squareInfo) {
-        this.api.getInventory(userId)
-            .then(body => {
-                const itemFilter = body.inventory.filter(obj => obj._id === squareInfo.itemHere._id);
+        this.compareInventory(userId, squareInfo, squareInfo.itemHere._id)
+            .then(itemFilter => {
                 if(itemFilter.length) {
                     lineBreak();                    
-                    console.log(`${squareInfo.squareDesc} This is where you found your ${body.inventory[0]}.`.magenta);
+                    console.log(`${squareInfo.squareDesc} This is where you found your ${squareInfo.itemHere._id}.`.magenta);
                     this.showOptions(userId);
                 } else {
                     lineBreak();
@@ -125,11 +134,10 @@ class Game {
             });
     }  
     resolveEndpoint(userId, squareInfo) {
-        this.api.getInventory(userId)
-            .then(body => {
-                const itemFilter = body.inventory.filter(obj => obj._id === squareInfo.endpointHere.requiredItem._id);
-                if(itemFilter[0] === squareInfo.endpointHere.requiredItem) {
-                    lineBreak();                                        
+        this.compareInventory(userId, squareInfo, squareInfo.endpointHere.requiredItem._id)
+            .then(itemFilter => {
+                if(itemFilter.length) {
+                    lineBreak();
                     console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.resolved}`.cyan);
                     if(squareInfo.itemHere) {
                         this.resolveItem(userId, squareInfo);
@@ -143,14 +151,12 @@ class Game {
     }
     endLevel(userId) {
         this.api.clearInventory(userId)
-            .then(({ cleared }) => {
-                if(cleared) {
-                    return this.api.getUserLevel()
-                        .then(({ userLevel }) => {
-                            const newLevel = userLevel + 1;
-                            return this.api.updateUserIfLevelExists(userId, newLevel);
-                        });
-                }
+            .then(() => {
+                return this.api.getUserLevel();
+            })
+            .then(({ level }) => {
+                const newLevel = level + 1;
+                return this.api.updateUserIfLevelExists(userId, newLevel);
             })
             .then(body => {
                 if(!body.currentLevel) {
