@@ -93,7 +93,6 @@ describe('User API', () => {
                 return User.findById(user.id);
             })
             .then(u => {
-                // console.log(user);
                 u.currentLevel = user.currentLevel;
             });
     });
@@ -111,11 +110,14 @@ describe('User API', () => {
             });
     });
 
-    it('gets inventory', () => {
+    it('gets (and populates) inventory', () => {
         return request.get(`/api/users/${user.id}/inventory`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body.inventory, user.inventory);
+                assert.deepEqual(body.inventory, [{
+                    _id: body.inventory[0]._id,
+                    item: { _id: square.itemHere, itemName: item.itemName }
+                }]);
             });
     });
 
@@ -127,6 +129,22 @@ describe('User API', () => {
             });
     });
 
+    it('clears out a user\'s inventory', () => {
+        return request.delete(`/api/users/${user.id}/inventory`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, { cleared: true });
+            });
+    });
+
+    it('gets initial description', () => {
+        return request.get(`/api/users/${user.id}/intro`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body.intro, 'You are here. You see things.');
+            });
+    });
+
     it('gets a user\'s current coordinates', () => {
         return request.get(`/api/users/${user.id}/coords`)
             .set('Authorization', token)
@@ -134,12 +152,12 @@ describe('User API', () => {
                 assert.deepEqual(body, square.coords);
             });
     });
-  
-    it('gets initial description', () => {
-        return request.get(`/api/users/${user.id}/intro`)
+
+    it('gets a user\'s current level', () => {
+        return request.get(`/api/users/${user.id}/level`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body.intro, 'You are here. You see things.');
+                assert.deepEqual(body, { level: level.levelNum });
             });
     });
 
@@ -152,7 +170,25 @@ describe('User API', () => {
             });
     });
     
-    it('returns false if no square exists', () => {
+    it('returns a falsey value if no square exists', () => {
+        return request.put(`/api/users/${user.id}/square`)
+            .send({ x: 2, y: 0 })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, { currentSquare: null }); 
+            });
+    });
+
+    it('updates a user\'s level, if another exists', () => {
+        return request.put(`/api/users/${user.id}/square`)
+            .send({ x: 1, y: 0 })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.strictEqual(body.currentSquare, square2._id); 
+            });
+    });
+    
+    it('returns a falsey value if no square exists', () => {
         return request.put(`/api/users/${user.id}/square`)
             .send({ x: 2, y: 0 })
             .set('Authorization', token)
