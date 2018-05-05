@@ -180,20 +180,31 @@ describe('User API', () => {
     });
 
     it('updates a user\'s level, if another exists', () => {
-        return request.put(`/api/users/${user.id}/square`)
-            .send({ x: 1, y: 0 })
-            .set('Authorization', token)
+        const level2 = {
+            levelNum: 2,
+            squares: []
+        };
+
+        return request.post('/api/levels')
+            .set('Authorization', adminToken)
+            .send(level2)
             .then(({ body }) => {
-                assert.strictEqual(body.currentSquare, square2._id); 
+                level2._id = body._id;
+                return request.put(`/api/users/${user.id}/level`)
+                    .set('Authorization', token)
+                    .send({ levelNum: 2 });
+            })
+            .then(({ body }) => {
+                assert.strictEqual(body.currentLevel, level2._id); 
             });
     });
     
-    it('returns a falsey value if no square exists', () => {
-        return request.put(`/api/users/${user.id}/square`)
-            .send({ x: 2, y: 0 })
+    it('returns a falsey value if no level exists', () => {
+        return request.put(`/api/users/${user.id}/level`)
+            .send({ levelNum: 3 })
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, { currentSquare: null }); 
+                assert.deepEqual(body, { currentLevel: null }); 
             });
     });
 });
