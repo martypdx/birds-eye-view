@@ -22,8 +22,7 @@ describe('Endpoint model', () => {
 
     it('has required fields', () => {
         const invalidEndpoint = new Endpoint({});
-        const errors = getErrors(invalidEndpoint.validateSync(), 3);
-        assert.strictEqual(errors.requiredItem.kind, 'required');
+        const errors = getErrors(invalidEndpoint.validateSync(), 2);
         assert.strictEqual(errors['endpointStory.unresolved'].kind, 'required');
         assert.strictEqual(errors['endpointStory.resolved'].kind, 'required');
     });

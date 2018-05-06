@@ -27,7 +27,6 @@ describe('Level API', () => {
                 square._id = body._id;
             });
     });
-
     
     it('posts a level', () => {
         const level = {
