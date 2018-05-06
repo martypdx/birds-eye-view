@@ -1,53 +1,31 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { item1Data, endpointData, square1Data } = require('./test-data');
 
 describe('Square API', () => {
-
+    
+    before(() => dropCollection('items'));
+    before(() => dropCollection('endpoints'));
     before(() => dropCollection('squares'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
-
-    let item = {
-        itemName: 'walnut',
-        itemStory: 'Oh, look. You found a walnut.'
-    };
     
-    let endpoint = {
-        endpointStory: {
-            unresolved: 'Nope not yet.',
-            resolved: 'You may pass.'
-        }
-    };
+    let item = { ...item1Data };
+    let endpoint = { ...endpointData };
+    let square = { ...square1Data };
 
     before(() => {
-        return request.post('/api/items')
-            .set('Authorization', adminToken)
-            .send(item)
-            .then(({ body }) => {
+        return postData('/api/items', item, adminToken)
+            .then(body => {
                 item._id = body._id;                
                 endpoint.requiredItem = body._id;
             });
     });
-
-    before(() => {
-        return request.post('/api/endpoints')
-            .set('Authorization', adminToken)
-            .send(endpoint)
-            .then(({ body }) => {
-                endpoint._id = body._id;
-            });
-    });
-
-    let square = {
-        coords: {
-            x: 1,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
-    };
+    
+    before(() => postData('/api/endpoints', endpoint, adminToken).then(body => endpoint._id = body._id));
 
     it('saves a square', () => {
         square.itemHere = item._id;

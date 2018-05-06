@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { square1Data, level1Data, userData } = require('./test-data');
 const User = require('../../lib/models/User');
 
 describe('Auth API', () => {
@@ -12,45 +13,21 @@ describe('Auth API', () => {
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    
-    let square = {
-        coords: {
-            x: 0,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
-    };
-    
-    before(() => {
-        return request.post('/api/squares')
-            .set('Authorization', adminToken)
-            .send(square)
-            .then(({ body }) => {
-                square._id = body._id;
-            });
-    });
+    let square = { ...square1Data };
+    let level = { ...level1Data };    
+    let user = { ...userData };
 
-    const level = {
-        levelNum: 1,
-        squares: []
-    };
-
+    before(() => postData('/api/squares', square, adminToken).then(body => square._id = body._id));
+    
     before(() => {
         level.squares.push({ squareId: square._id });
-        return request.post('/api/levels')
-            .set('Authorization', adminToken)
-            .send(level)
-            .then(({ body }) => {
+        return postData('/api/levels', level, adminToken)
+            .then(body => {
                 level._id = body._id;
             });
     });
 
     let token = '';
-
-    let user = {
-        name: 'Master Blaster',
-        password: 'bartertown',
-    };
 
     before(() => {
         return request.post('/api/auth/signup')

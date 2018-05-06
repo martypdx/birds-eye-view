@@ -1,35 +1,21 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { item1Data, endpointData } = require('./test-data');
 
 describe('Endpoint API', () => {
 
+    before(() => dropCollection('items'));
     before(() => dropCollection('endpoints'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let item = {
-        itemName: 'walnut',
-        itemStory: 'Oh, look. You found a walnut.'
-    };
-    
-    let endpoint = {
-        endpointStory: {
-            unresolved: 'Nope not yet.',
-            resolved: 'You may pass.'
-        }
-    };
+    let item = { ...item1Data };
+    let endpoint = { ...endpointData };
 
-    before(() => {
-        return request.post('/api/items')
-            .set('Authorization', adminToken)
-            .send(item)
-            .then(({ body }) => {
-                endpoint.requiredItem = body._id;
-            });
-    });
+    before(() => postData('/api/items', item, adminToken).then(body => endpoint.requiredItem = body._id));    
 
     it('saves an endpoint', () => {
         return request.post('/api/endpoints')

@@ -1,88 +1,50 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { item1Data, item2Data, square1Data, square2Data, userData, level1Data, level2Data } = require('./test-data');
 const User = require('../../lib/models/User');
 
 describe('User API', () => {
 
     before(() => dropCollection('squares'));
     before(() => dropCollection('levels'));
+    before(() => dropCollection('items'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let item = {
-        itemName: 'walnut',
-        itemStory: 'Oh, look. You found a walnut.'
-    };
+    let item1 = { ...item1Data };
+    let item2 = { ...item2Data };
+    let square1 = { ...square1Data };    
+    let square2 = { ...square2Data };    
+    let level1 = { ...level1Data };    
+    let level2 = { ...level2Data };
+    let user = { ...userData };    
+
+    before(() => postData('/api/items', item1, adminToken).then(body => item1._id = body._id));
+    before(() => postData('/api/items', item2, adminToken).then(body => item2._id = body._id));
 
     before(() => {
-        return request.post('/api/items')
-            .set('Authorization', adminToken)
-            .send(item)
-            .then(({ body }) => {
-                item._id = body._id;
+        square1.itemHere = item1._id;        
+        return postData('/api/squares', square1, adminToken)
+            .then(body => {
+                square1._id = body._id;
             });
     });
-
-    let square = {
-        coords: {
-            x: 0,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
-    };
- 
-    before(() => {
-        square.itemHere = item._id;
-        return request.post('/api/squares')
-            .set('Authorization', adminToken)
-            .send(square)
-            .then(({ body }) => {
-                square._id = body._id;
-            });
-    });
-
-    let square2 = {
-        coords: {
-            x: 1,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
-    };
     
-    before(() => {
-        return request.post('/api/squares')
-            .set('Authorization', adminToken)
-            .send(square2)
-            .then(({ body }) => {
-                square2._id = body._id;
-            });
-    });
-
-    const level = {
-        levelNum: 1,
-        squares: []
-    };
+    before(() => postData('/api/squares', square2, adminToken).then(body => square2._id = body._id));
 
     before(() => {
-        level.squares.push({ squareId: square._id });
-        level.squares.push({ squareId: square2._id });
-        return request.post('/api/levels')
-            .set('Authorization', adminToken)
-            .send(level)
-            .then(({ body }) => {
-                level._id = body._id;
+        level1.squares.push({ squareId: square1._id });
+        level1.squares.push({ squareId: square2._id });
+        return postData('/api/levels', level1, adminToken)
+            .then(body => {
+                level1._id = body._id;
             });
     });
 
     let token = '';
-
-    let user = {
-        name: 'Master Blaster',
-        password: 'bartertown',
-    };
 
     before(() => {
         return request.post('/api/auth/signup')
@@ -100,11 +62,11 @@ describe('User API', () => {
     it('adds an item to inventory', () => {
         return request.post(`/api/users/${user.id}/inventory`)
             .set('Authorization', token)
-            .send({ item: square.itemHere })
+            .send({ item: square1.itemHere })
             .then(({ body }) => {
                 assert.deepEqual(body.inventory, [{
                     _id: body.inventory[0]._id,
-                    ...{ item: square.itemHere }
+                    ...{ item: square1.itemHere }
                 }]);
                 user.inventory = body.inventory;
             });
@@ -116,16 +78,16 @@ describe('User API', () => {
             .then(({ body }) => {
                 assert.deepEqual(body.inventory, [{
                     _id: body.inventory[0]._id,
-                    item: { _id: square.itemHere, itemName: item.itemName }
+                    item: { _id: square1.itemHere, itemName: item1.itemName }
                 }]);
             });
     });
 
     it('deletes an item from inventory', () => {
-        return request.delete(`/api/users/${user.id}/inventory/${item._id}`)
+        return request.delete(`/api/users/${user.id}/inventory/${item1._id}`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, { removed: { item: item._id } });
+                assert.deepEqual(body, { removed: { item: item1._id } });
             });
     });
 
@@ -149,7 +111,7 @@ describe('User API', () => {
         return request.get(`/api/users/${user.id}/coords`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, square.coords);
+                assert.deepEqual(body, square1.coords);
             });
     });
 
@@ -157,7 +119,7 @@ describe('User API', () => {
         return request.get(`/api/users/${user.id}/level`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, { level: level.levelNum });
+                assert.deepEqual(body, { level: level1.levelNum });
             });
     });
 
@@ -180,11 +142,6 @@ describe('User API', () => {
     });
 
     it('updates a user\'s level, if another exists', () => {
-        const level2 = {
-            levelNum: 2,
-            squares: []
-        };
-
         return request.post('/api/levels')
             .set('Authorization', adminToken)
             .send(level2)

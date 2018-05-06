@@ -1,40 +1,23 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
-
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { square1Data, level1Data } = require('./test-data');
 
 describe('Level API', () => {
-    before(() => dropCollection('users'));
-    before(() => dropCollection('levels'));
     before(() => dropCollection('squares'));
+    before(() => dropCollection('levels'));
+    before(() => dropCollection('users'));
 
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let square = {
-        coords: {
-            x: 1,
-            y: 0
-        },
-        squareDesc: 'You are here. You see things.'
-    };
+    let square = { ...square1Data };
+    let level = { ...level1Data };
 
-    before(() => {
-        return request.post('/api/squares')
-            .set('Authorization', adminToken)
-            .send(square)
-            .then(({ body }) => {
-                square._id = body._id;
-            });
-    });
+    before(() => postData('/api/squares', square, adminToken).then(body => square._id = body._id));
     
     it('posts a level', () => {
-        const level = {
-            levelNum: 1,
-            squares: [{
-                squareId: square._id
-            }]
-        };
+        level.squares = [{ squareId: square._id }];
         
         return request.post('/api/levels')
             .set('Authorization', adminToken)
