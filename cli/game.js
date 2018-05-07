@@ -57,9 +57,9 @@ class Game {
             });
     }
     locateUser(userId) {
-        this.api.getUserSquare(userId)
-            .then(({ currentSquare })=> {
-                this.assessSquare(userId, currentSquare);
+        this.api.getUserPosition(userId)
+            .then(({ _id })=> {
+                this.assessSquare(userId, _id);
             });
     }
     showOptions(userId) {
@@ -78,10 +78,10 @@ class Game {
             });
     }
     resolveDirection(userId, direction) {
-        this.api.getUserCoords(userId)
+        this.api.getUserPosition(userId)
             .then(body => {
 
-                let { x, y } = body;
+                let { x, y } = body.coords;
                 switch(direction) {
                     case 'n':
                         y++;
@@ -96,74 +96,92 @@ class Game {
                         x--;    
                 }
 
-                return this.api.updateUserIfSquareExists(userId, x, y);
+                return this.api.updateUserIfSquareExists(userId, x, y, body._id);
             })
             .then(body => {
                 if(body.currentSquare) {
                     this.assessSquare(userId, body.currentSquare);
                 } else {
-                    console.log('But that direction is outside your territory. You should try another.'.cyan);
+                    lineBreak();                                        
+                    console.log('That direction is outside your territory. Try another.'.blue);
                     this.showOptions(userId);
                 }
             });
     }
     assessSquare(userId, currentSquare) {
-        this.api.getSquareInfo(currentSquare)
-            .then(body => {
-                if(body.endpointHere) {
-                    this.resolveEndpoint(userId, body);
-                } else if(body.itemHere) {
-                    this.resolveItem(userId, body);
+        return Promise.all([
+            this.api.getSquareInfo(currentSquare),
+            this.api.getVisitedSquare(userId, currentSquare)
+        ])
+            .then(([squareInfo, visitCheck]) => {
+                const { visited } = visitCheck;
+                if(squareInfo.endpointHere) {
+                    this.resolveEndpoint(userId, squareInfo, visited);
+                } else if(squareInfo.itemHere) {
+                    this.resolveItem(userId, squareInfo, visited);
                 } else {
-                    console.log(`${body.squareDesc}`);
+                    lineBreak();
+                    !visited ? console.log(`${squareInfo.squareDesc.cyan}`) : console.log(`${squareInfo.visitedDesc.magenta}`);
                     this.showOptions(userId);
                 }
             });
     }
-    compareInventory(userId, squareInfo, itemToMatch) {
-        return this.api.getInventory(userId)
-            .then(body => {
-                const itemFilter = body.inventory.filter(obj => obj.item._id === itemToMatch);
-                return itemFilter;
+    checkInventory(userId, squareInfo, itemToMatch) {
+        return this.api.getInventory(userId, itemToMatch)
+            .then(body => body);
+    }
+    resolveEndpoint(userId, squareInfo, visited) {
+        this.checkInventory(userId, squareInfo, squareInfo.endpointHere.requiredItem._id)
+            .then(item => {
+                if(item.itemName) {
+                    this.api.deleteInventory(userId, item._id)
+                        .then(() => {
+                            if(squareInfo.itemHere) {
+                                this.resolveItem(userId, squareInfo, visited, `${squareInfo.endpointHere.endpointStory.resolved}`);
+                            } else {
+                                lineBreak();     
+                                !visited ?
+                                    console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.resolved}`.magenta)
+                                    : console.log(`${squareInfo.visitedDesc}\n${squareInfo.endpointHere.endpointStory.resolved}`.magenta);
+                                this.endLevel(userId);
+                            }
+                        });
+                } else {
+                    lineBreak();     
+                    !visited ?
+                        console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.unresolved}`.cyan)
+                        : console.log(`${squareInfo.visitedDesc.magenta}\n${squareInfo.endpointHere.endpointStory.unresolved.cyan}`);
+                    this.showOptions(userId);                
+                }
             });
     }
-    resolveItem(userId, squareInfo) {
-        this.compareInventory(userId, squareInfo, squareInfo.itemHere._id)
-            .then(itemFilter => {
-                if(itemFilter.length) {
+    resolveItem(userId, squareInfo, visited, resolvedInfo = '') {
+        this.checkInventory(userId, squareInfo, squareInfo.itemHere._id)
+            .then(({ itemName }) => {
+                if(itemName) {
                     lineBreak();                    
-                    console.log(`${squareInfo.squareDesc} This is where you found your ${squareInfo.itemHere.itemName}.`.magenta);
+                    console.log(`${squareInfo.visitedDesc} This is where you found your ${itemName}.`.magenta);
                     this.showOptions(userId);
                 } else {
-                    lineBreak();
-                    console.log(`${squareInfo.squareDesc} ${squareInfo.itemHere.itemStory}`.cyan);
                     this.api.addItem(userId, squareInfo.itemHere._id)
                         .then(() => {
+                            lineBreak();
+                            const space = resolvedInfo ? '\n\n' : '';
+                            !visited ?
+                                console.log(`${squareInfo.squareDesc.cyan}${space}${resolvedInfo.magenta}`)
+                                : console.log(`${squareInfo.visitedDesc}\n${squareInfo.endpointHere.endpointStory.resolved}`.magenta);
                             lineBreak();                
-                            console.log(`You fly back with a ${squareInfo.itemHere.itemName}.`.magenta);
+                            console.log(`${squareInfo.itemHere.itemStory}`.magenta);
                             this.showOptions(userId);                
                         });
                 }
             });
     }  
-    resolveEndpoint(userId, squareInfo) {
-        this.compareInventory(userId, squareInfo, squareInfo.endpointHere.requiredItem._id)
-            .then(itemFilter => {
-                if(itemFilter.length) {
-                    lineBreak();
-                    console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.resolved}`.cyan);
-                    if(squareInfo.itemHere) {
-                        this.resolveItem(userId, squareInfo);
-                    } else this.endLevel(userId);
-                } else {
-                    lineBreak();                    
-                    console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.unresolved} You fly back.`.cyan);
-                    this.showOptions(userId);                
-                }
-            });
-    }
     endLevel(userId) {
-        this.api.clearInventory(userId)
+        return Promise.all([
+            this.api.clearInventory(userId),
+            this.api.clearVisited(userId)
+        ])
             .then(() => {
                 return this.api.getUserLevel(userId);
             })
@@ -181,8 +199,8 @@ class Game {
                         choices: [{ name:'Yes!', value: 'yes' }]
                     })
                         .then(({ newGame }) => {
-                            if(newGame) this.api.updateUserIfLevelExists(userId, 1)
-                                .then(() => this.showOptions(userId));
+                            if(newGame) this.api.createNewGame(userId)
+                                .then(() => this.initLevel(userId));
                         });
                 }
             });

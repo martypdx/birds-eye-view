@@ -92,6 +92,13 @@ const service = {
                 return body;
             });
     },
+    clearVisited(userId) {
+        return request.delete(`${server}/api/users/${userId}/visited`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
     getRandomHazard() {
         return request.get(`${server}/api/hazards`)
             .set('Authorization', token)
@@ -109,6 +116,13 @@ const service = {
     updateUserIfLevelExists(userId, newLevel) {
         return request.put(`${server}/api/users/${userId}/level`)
             .send({ levelNum: newLevel })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    createNewGame(userId) {
+        return request.post(`${server}/api/users/${userId}/game`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
