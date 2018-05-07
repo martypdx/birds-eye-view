@@ -10,6 +10,7 @@ describe('User model', () => {
             name: 'Tasha Zuniga',
             hash: 'notpassword',
             inventory: [{ item: Types.ObjectId() }],
+            visitedSquares: [{ squareId: Types.ObjectId() }],
             currentSquare: Types.ObjectId(),
             currentLevel: Types.ObjectId(),
             roles: ['theBoss']
@@ -17,6 +18,7 @@ describe('User model', () => {
         const user = new User(fullInput);
         fullInput._id = user._id;
         fullInput.inventory[0]._id = user.inventory[0]._id;
+        fullInput.visitedSquares[0]._id = user.visitedSquares[0]._id;
         assert.deepEqual(user.toJSON(), fullInput);
         assert.isUndefined(user.validateSync());
     });
