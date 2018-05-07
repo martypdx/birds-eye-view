@@ -12,6 +12,7 @@ describe('Square Unit Test', () => {
                 y: 0
             },
             squareDesc: 'A firey, burning hellscape.',
+            visitedDesc: 'You return to the hellscape.',            
             itemHere: Types.ObjectId(),
             endpointHere: Types.ObjectId()
         };
@@ -23,10 +24,11 @@ describe('Square Unit Test', () => {
 
     it('has required fields', () => {
         const square = new Square({});
-        const errors = getErrors(square.validateSync(), 3);
+        const errors = getErrors(square.validateSync(), 4);
         assert.strictEqual(errors['coords.x'].kind, 'required');
         assert.strictEqual(errors['coords.y'].kind, 'required');
         assert.strictEqual(errors.squareDesc.kind, 'required');
+        assert.strictEqual(errors.visitedDesc.kind, 'required');
     });
 
 });
