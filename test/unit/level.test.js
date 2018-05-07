@@ -8,6 +8,7 @@ describe('Level Model', () => {
     it('is a valid good model', () => {
         const data = {
             levelNum: 1,
+            intro: 'Ready player one.', 
             squares: [{
                 squareId: Types.ObjectId(),
                 itemId: Types.ObjectId(),
@@ -22,7 +23,8 @@ describe('Level Model', () => {
 
     it('has required fields', () => {
         const level = new Level({});
-        const errors = getErrors(level.validateSync(), 1);
+        const errors = getErrors(level.validateSync(), 2);
         assert.strictEqual(errors.levelNum.kind, 'required');
+        assert.strictEqual(errors.intro.kind, 'required');
     });
 });
