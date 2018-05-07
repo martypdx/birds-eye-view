@@ -51,6 +51,7 @@ describe('Square API', () => {
             .set('Authorization', adminToken)
             .then(({ body }) => {
                 assert.ok(body.squareDesc);
+                assert.ok(body.visitedDesc);
                 assert.ok(body.itemHere.itemName);
                 assert.ok(body.endpointHere.requiredItem.itemName);
             });
