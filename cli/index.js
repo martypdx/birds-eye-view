@@ -1,7 +1,7 @@
 const request = require('superagent');
 const Game = require('./game');
 const emoji = require('./emoji');
-const server = 'http://localhost:3000'; // 'https://better-birds-eye-view.herokuapp.com';
+const server = 'https://better-birds-eye-view.herokuapp.com';
 const colors = require('colors'); // eslint-disable-line
 
 
