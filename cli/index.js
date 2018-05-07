@@ -34,23 +34,16 @@ const service = {
                 return body;
             });
     },
-    getUserSquare(userId) {
-        return request.get(`${server}/api/users/${userId}/square`)
+    getUserPosition(userId) {
+        return request.get(`${server}/api/users/${userId}/position`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    getUserCoords(userId) {
-        return request.get(`${server}/api/users/${userId}/coords`)
-            .set('Authorization', token)
-            .then(({ body }) => {
-                return body;
-            });
-    },
-    updateUserIfSquareExists(userId, x, y) {
+    updateUserIfSquareExists(userId, newX, newY, oldSquare) {
         return request.put(`${server}/api/users/${userId}/square`)
-            .send({ x: x, y: y })
+            .send({ coords: { x: newX, y: newY }, squareId: oldSquare })
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
@@ -71,8 +64,15 @@ const service = {
                 return body;
             });
     },
-    getInventory(userId) {
-        return request.get(`${server}/api/users/${userId}/inventory`)
+    getVisitedSquare(userId, squareId) {
+        return request.get(`${server}/api/users/${userId}/visited/${squareId}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    getInventory(userId, itemId) {
+        return request.get(`${server}/api/users/${userId}/inventory/${itemId}`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
