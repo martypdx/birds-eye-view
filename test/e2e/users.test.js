@@ -115,6 +115,14 @@ describe('User API', () => {
                 assert.deepEqual(body, square1.coords);
             });
     });
+    
+    it('gets a user\'s current square', () => {
+        return request.get(`/api/users/${user.id}/square`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body.currentSquare, square1._id);
+            });
+    });
 
     it('gets a user\'s current level', () => {
         return request.get(`/api/users/${user.id}/level`)
