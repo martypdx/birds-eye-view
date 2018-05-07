@@ -39,6 +39,14 @@ MongoDB, Node.js, and your favorite CLI
 * [Keli](https://github.com/kelihansen),
 * [Tasha](https://github.com/Tashazun)
 
+with inspiration from [Space Explorers](https://github.com/ZacIsLate/SpaceExplorers)
+
+## Coding Standards
+
+* Obey the linter.
+* ES6 is our friend (e.g. choose `const` and `let` over `var`).
+* Keep mocha tests grammatical (i.e. `it('has a working route')...` over `it('route works')...`).
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.

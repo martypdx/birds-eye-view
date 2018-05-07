@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
+const { hazard1Data, hazard2Data } = require('./test-data');
 
 describe('Hazard API', () => {
 
@@ -10,32 +11,27 @@ describe('Hazard API', () => {
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let hazard = {
-        hazardStory: 'Eep, a fox. You die.'
-    };
+    let hazard1 = { ...hazard1Data };
+    let hazard2 = { ...hazard2Data };
 
     it('saves a hazard', () => {
         return request.post('/api/hazards')
             .set('Authorization', adminToken)
-            .send(hazard)
+            .send(hazard1)
             .then(({ body }) => {
                 const { _id, __v } = body;
                 assert.ok(_id);
                 assert.strictEqual(__v, 0);
                 assert.deepEqual(body, {
-                    ...hazard,
+                    ...hazard1,
                     _id,
                     __v
                 });
-                hazard._id = body._id;
+                hazard1._id = body._id;
             });
     });
     
     it('gets a random hazard', () => {
-        let hazard2 = {
-            hazardStory: 'Oh no, a cat.'
-        };
-
         return request.post('/api/hazards')
             .set('Authorization', adminToken)
             .send(hazard2)
