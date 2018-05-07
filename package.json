@@ -8,6 +8,7 @@
     "test": "test"
   },
   "scripts": {
+    "load-db": "node lib/data/load-db",
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test:mocha": "mocha  --recursive",
