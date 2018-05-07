@@ -2,20 +2,21 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection, createAdminToken } = require('./db');
 
-describe('Fluff API', () => {
-    
-    before(() => dropCollection('fluffs'));
+describe('Item API', () => {
+
+    before(() => dropCollection('items'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    const info = {
-        desc: 'You arrive at a freeway.'
+    let info = {
+        itemName: 'walnut',
+        itemStory: 'Oh, look. You found a walnut.'
     };
 
-    it('saves a bit of fluff', () => {
-        return request.post('/api/fluffs')
+    it('saves an item', () => {
+        return request.post('/api/items')
             .set('Authorization', adminToken)
             .send(info)
             .then(({ body }) => {

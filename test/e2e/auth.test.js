@@ -1,59 +1,33 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createAdminToken } = require('./db');
+const { dropCollection, createAdminToken, postData } = require('./db');
+const { square1Data, level1Data, userData } = require('./test-data');
 const User = require('../../lib/models/User');
 
 describe('Auth API', () => {
 
-    before(() => dropCollection('tasks'));
-    before(() => dropCollection('fluffs'));
+    before(() => dropCollection('squares'));
+    before(() => dropCollection('levels'));
     before(() => dropCollection('users'));
     
     let adminToken = '';
     before(() => createAdminToken().then(t => adminToken = t));
 
-    let token = null;
+    let square = { ...square1Data };
+    let level = { ...level1Data };    
+    let user = { ...userData };
 
-    const fluffs = [
-        { desc: 'You arrive at a freeway.' },
-        { desc: 'There is a wide river here.' },
-        { desc: 'You find a tall dead tree.' }
-    ];
-
+    before(() => postData('/api/squares', square, adminToken).then(body => square._id = body._id));
+    
     before(() => {
-        fluffs.forEach(obj => {
-            request.post('/api/fluffs')
-                .set('Authorization', adminToken)
-                .send(obj)
-                .then();
-        });
+        level.squares.push({ squareId: square._id });
+        return postData('/api/levels', level, adminToken)
+            .then(body => {
+                level._id = body._id;
+            });
     });
 
-    let task = {
-        number: 1,
-        startingDesc: 'You begin to feel hungry. Better find some food.',
-        requiredItem: { 
-            type: 'walnut',
-            itemDesc: 'You discover a walnut, but cannot crack the shell with your beak. You pick it up.'
-        },
-        endpoint: {
-            desc: 'You arrive at an intersection, crossed by telephone wires.',
-            unresolved: 'If you needed to crack something, this would be a good spot for it.',
-            resolved: 'You drop the walnut onto the street. A car rolls over it, cracking the shell, and you carefully swoop down and devour the food inside.'
-        }
-    };
-
-    before(() => {
-        return request.post('/api/tasks')
-            .set('Authorization', adminToken)
-            .send(task)
-            .then();
-    });
-
-    let user = {
-        name: 'Master Blaster',
-        password: 'bartertown',
-    };
+    let token = '';
 
     before(() => {
         return request.post('/api/auth/signup')
@@ -87,14 +61,11 @@ describe('Auth API', () => {
             });
     });
     
-    it('assigns user a task and generates a set of game options for user', () => {
+    it('assigns user a starting square', () => {
         return User.findById(user.id)
             .then(user => {
-                assert.ok(user.currentTask);
-                assert.ok(user.options.n.action);
-                assert.ok(user.options.s.action);
-                assert.ok(user.options.e.action);
-                assert.ok(user.options.w.action);
+                assert.strictEqual(user.currentLevel.toJSON(), level._id);                
+                assert.strictEqual(user.currentSquare.toJSON(), level.squares[0].squareId);
             });
     });
 

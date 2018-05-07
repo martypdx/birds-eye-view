@@ -1,7 +1,6 @@
 /* eslint no-console:off */
 const inquirer = require('inquirer');
 const colors = require('colors'); // eslint-disable-line
-const gameLevels = 2;
 
 const lineBreak = () => console.log('\n');
 
@@ -30,11 +29,18 @@ class Game {
     }
     start() {
         inquirer.prompt(signupQuestions)
-            .then(({ auth, name, password }) => this.api[auth]({ name, password }))
-            .then(({ token, name, userId }) => {
-                this.user = name;
-                this.api.token = token;
-                this.presentTask(userId);
+            .then(({ auth, name, password }) => {
+                if(auth === 'signUp') {
+                    return this.api.signUp({ name, password })
+                        .then(({ userId }) => {
+                            this.initLevel(userId);
+                        });
+                } else if(auth === 'signIn') {
+                    return this.api.signIn({ name, password })
+                        .then(({ userId }) => {
+                            this.locateUser(userId);
+                        });
+                }
             })
             .catch(err => {
                 lineBreak();
@@ -42,12 +48,18 @@ class Game {
                 this.start();
             });
     }
-    presentTask(userId) {
-        this.api.getTask(userId, this.api.token)
-            .then(task => {
+    initLevel(userId) {
+        this.api.getLevelIntro(userId)
+            .then(({ intro })=> {
                 lineBreak();                
-                console.log(task.intro.replace('(User Name)', this.user).blue);
+                console.log(intro.blue);
                 this.showOptions(userId);
+            });
+    }
+    locateUser(userId) {
+        this.api.getUserPosition(userId)
+            .then(({ _id })=> {
+                this.assessSquare(userId, _id);
             });
     }
     showOptions(userId) {
@@ -62,68 +74,123 @@ class Game {
                 { name: 'West', value: 'w' }]
         })
             .then(({ direction }) => {
-                this.resolveAction(userId, direction);
+                this.resolveDirection(userId, direction);
             });
     }
-    resolveAction(userId, direction) {       
-        this.api.getOption(userId, direction)
+    resolveDirection(userId, direction) {
+        this.api.getUserPosition(userId)
             .then(body => {
-                switch(body.action) {
-                    case 'look':
-                        lineBreak();
-                        console.log(`${body.info} You fly back.`.cyan);
-                        this.showOptions(userId);
+
+                let { x, y } = body.coords;
+                switch(direction) {
+                    case 'n':
+                        y++;
                         break;
-                    case 'interact':
-                        this.addToInventory(userId, body.info);
+                    case 's':
+                        y--;
                         break;
-                    case 'resolve':
-                        this.completeTask(userId, body.info);
+                    case 'e':
+                        x++;
+                        break;
+                    case 'w':
+                        x--;    
                 }
-            });   
-    }
-    addToInventory(userId, itemInfo) {
-        this.api.getInventory(userId)
+
+                return this.api.updateUserIfSquareExists(userId, x, y, body._id);
+            })
             .then(body => {
-                if(body.inventory[0] === itemInfo.type) {
-                    lineBreak();                    
-                    console.log(`This is where you found your ${body.inventory[0]}. You fly back.`.magenta);
+                if(body.currentSquare) {
+                    this.assessSquare(userId, body.currentSquare);
+                } else {
+                    lineBreak();                                        
+                    console.log('That direction is outside your territory. Try another.'.blue);
                     this.showOptions(userId);
+                }
+            });
+    }
+    assessSquare(userId, currentSquare) {
+        return Promise.all([
+            this.api.getSquareInfo(currentSquare),
+            this.api.getVisitedSquare(userId, currentSquare)
+        ])
+            .then(([squareInfo, visitCheck]) => {
+                const { visited } = visitCheck;
+                if(squareInfo.endpointHere) {
+                    this.resolveEndpoint(userId, squareInfo, visited);
+                } else if(squareInfo.itemHere) {
+                    this.resolveItem(userId, squareInfo, visited);
                 } else {
                     lineBreak();
-                    console.log(itemInfo.itemDesc.cyan);
-                    this.api.addItem(userId, itemInfo.type)
-                        .then(body => {
-                            lineBreak();                
-                            console.log(`You fly back with a ${body.inventory[0]}.`.magenta);
-                            this.showOptions(userId);                
-                        });
+                    !visited ? console.log(`${squareInfo.squareDesc.cyan}`) : console.log(`${squareInfo.visitedDesc.magenta}`);
+                    this.showOptions(userId);
                 }
             });
     }
-    completeTask(userId, endpointInfo) {
-        this.api.getInventory(userId)
-            .then(body => {
-                if(body.inventory[0] === endpointInfo.requiredItem) {
-                    lineBreak();                                        
-                    console.log(`${endpointInfo.desc} ${endpointInfo.resolved}`.cyan);
-                    this.endLevel(userId);
+    checkInventory(userId, squareInfo, itemToMatch) {
+        return this.api.getInventory(userId, itemToMatch)
+            .then(body => body);
+    }
+    resolveEndpoint(userId, squareInfo, visited) {
+        this.checkInventory(userId, squareInfo, squareInfo.endpointHere.requiredItem._id)
+            .then(item => {
+                if(item.itemName) {
+                    this.api.deleteInventory(userId, item._id)
+                        .then(() => {
+                            if(squareInfo.itemHere) {
+                                this.resolveItem(userId, squareInfo, visited, `${squareInfo.endpointHere.endpointStory.resolved}`);
+                            } else {
+                                lineBreak();     
+                                !visited ?
+                                    console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.resolved}`.magenta)
+                                    : console.log(`${squareInfo.visitedDesc}\n${squareInfo.endpointHere.endpointStory.resolved}`.magenta);
+                                this.endLevel(userId);
+                            }
+                        });
                 } else {
-                    lineBreak();                    
-                    console.log(`${endpointInfo.desc} ${endpointInfo.unresolved} You fly back.`.cyan);
+                    lineBreak();     
+                    !visited ?
+                        console.log(`${squareInfo.squareDesc} ${squareInfo.endpointHere.endpointStory.unresolved}`.cyan)
+                        : console.log(`${squareInfo.visitedDesc.magenta}\n${squareInfo.endpointHere.endpointStory.unresolved.cyan}`);
                     this.showOptions(userId);                
                 }
             });
     }
-    endLevel(userId) {
-        this.api.deleteInventory(userId)
-            .then(({ inventory }) => {
-                if(inventory.length === 0) {
-                    return this.api.getLevel(userId);
+    resolveItem(userId, squareInfo, visited, resolvedInfo = '') {
+        this.checkInventory(userId, squareInfo, squareInfo.itemHere._id)
+            .then(({ itemName }) => {
+                if(itemName) {
+                    lineBreak();                    
+                    console.log(`${squareInfo.visitedDesc} This is where you found your ${itemName}.`.magenta);
+                    this.showOptions(userId);
+                } else {
+                    this.api.addItem(userId, squareInfo.itemHere._id)
+                        .then(() => {
+                            lineBreak();
+                            const space = resolvedInfo ? '\n\n' : '';
+                            !visited ?
+                                console.log(`${squareInfo.squareDesc.cyan}${space}${resolvedInfo.magenta}`)
+                                : console.log(`${squareInfo.visitedDesc}\n${squareInfo.endpointHere.endpointStory.resolved}`.magenta);
+                            lineBreak();                
+                            console.log(`${squareInfo.itemHere.itemStory}`.magenta);
+                            this.showOptions(userId);                
+                        });
                 }
+            });
+    }  
+    endLevel(userId) {
+        return Promise.all([
+            this.api.clearInventory(userId),
+            this.api.clearVisited(userId)
+        ])
+            .then(() => {
+                return this.api.getUserLevel(userId);
             })
             .then(({ level }) => {
-                if(level === gameLevels) {
+                const newLevel = level + 1;
+                return this.api.updateUserIfLevelExists(userId, newLevel);
+            })
+            .then(body => {
+                if(!body.currentLevel) {
                     lineBreak();                                    
                     inquirer.prompt({
                         type: 'list',
@@ -132,17 +199,10 @@ class Game {
                         choices: [{ name:'Yes!', value: 'yes' }]
                     })
                         .then(({ newGame }) => {
-                            if(newGame) this.newLevel(userId, 1);
+                            if(newGame) this.api.createNewGame(userId)
+                                .then(() => this.initLevel(userId));
                         });
-                } else {
-                    this.newLevel(userId, level + 1);
                 }
-            });
-    }
-    newLevel(userId, newLevel) {
-        this.api.updateLevel(userId, newLevel)
-            .then(() => {
-                this.presentTask(userId);
             });
     }
 }

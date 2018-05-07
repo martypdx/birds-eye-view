@@ -17,5 +17,12 @@ module.exports = {
         return request.post('/api/auth/signup')
             .send(info)
             .then(({ body }) => body.token);
+    },
+
+    postData(path, data, adminToken) {
+        return request.post(path)
+            .set('Authorization', adminToken)
+            .send(data)
+            .then(({ body }) => body);
     }
 };

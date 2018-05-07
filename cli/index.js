@@ -1,7 +1,7 @@
 const request = require('superagent');
 const Game = require('./game');
 const emoji = require('./emoji');
-const server = 'https://better-birds-eye-view.herokuapp.com';
+const server = 'http://localhost:3000'; // 'https://better-birds-eye-view.herokuapp.com';
 const colors = require('colors'); // eslint-disable-line
 
 
@@ -26,55 +26,104 @@ const service = {
                 token = body.token;
                 return body;
             });
-
     },
-    getTask(userId) {
+    getLevelIntro(userId) {
         return request.get(`${server}/api/users/${userId}/intro`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    getOption(userId, direction) {
-        return request.get(`${server}/api/users/${userId}/options/${direction}`)
+    getUserPosition(userId) {
+        return request.get(`${server}/api/users/${userId}/position`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    addItem(userId, item) {
+    updateUserIfSquareExists(userId, newX, newY, oldSquare) {
+        return request.put(`${server}/api/users/${userId}/square`)
+            .send({ coords: { x: newX, y: newY }, squareId: oldSquare })
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    getSquareInfo(currentSquare) {
+        return request.get(`${server}/api/squares/${currentSquare}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    addItem(userId, itemId) {
         return request.post(`${server}/api/users/${userId}/inventory`)
             .set('Authorization', token)
-            .send({ type: item })
+            .send({ item: itemId })
             .then(({ body }) => {
                 return body;
             });
     },
-    getInventory(userId) {
-        return request.get(`${server}/api/users/${userId}/inventory`)
+    getVisitedSquare(userId, squareId) {
+        return request.get(`${server}/api/users/${userId}/visited/${squareId}`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    deleteInventory(userId) {
+    getInventory(userId, itemId) {
+        return request.get(`${server}/api/users/${userId}/inventory/${itemId}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    deleteInventory(userId, itemId) {
+        return request.delete(`${server}/api/users/${userId}/inventory/${itemId}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    clearInventory(userId) {
         return request.delete(`${server}/api/users/${userId}/inventory`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    getLevel(userId) {
+    clearVisited(userId) {
+        return request.delete(`${server}/api/users/${userId}/visited`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    getRandomHazard() {
+        return request.get(`${server}/api/hazards`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    getUserLevel(userId) {
         return request.get(`${server}/api/users/${userId}/level`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
     },
-    updateLevel(userId, newLevel) {
+    updateUserIfLevelExists(userId, newLevel) {
         return request.put(`${server}/api/users/${userId}/level`)
+            .send({ levelNum: newLevel })
             .set('Authorization', token)
-            .send({ level: newLevel })
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    createNewGame(userId) {
+        return request.post(`${server}/api/users/${userId}/game`)
+            .set('Authorization', token)
             .then(({ body }) => {
                 return body;
             });
