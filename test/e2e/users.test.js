@@ -197,4 +197,21 @@ describe('User API', () => {
                 assert.deepEqual(body, { currentLevel: null }); 
             });
     });
+
+    it('clears a user\'s visited squares', () => {
+        return request.delete(`/api/users/${user.id}/visited`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body, { cleared: true });
+            });
+    });
+
+    it('creates a new game', () => {
+        return request.post(`/api/users/${user.id}/game`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.deepEqual(body.currentLevel, level1._id); 
+                assert.deepEqual(body.currentSquare, square1._id); 
+            });
+    });
 });
