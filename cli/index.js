@@ -27,8 +27,15 @@ const service = {
                 return body;
             });
     },
-    getInitialDesc(userId) {
+    getLevelIntro(userId) {
         return request.get(`${server}/api/users/${userId}/intro`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                return body;
+            });
+    },
+    getUserSquare(userId) {
+        return request.get(`${server}/api/users/${userId}/square`)
             .set('Authorization', token)
             .then(({ body }) => {
                 return body;

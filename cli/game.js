@@ -29,10 +29,18 @@ class Game {
     }
     start() {
         inquirer.prompt(signupQuestions)
-            .then(({ auth, name, password }) => this.api[auth]({ name, password }))
-            .then(({ name, userId }) => {
-                this.user = name;
-                this.initSquare(userId);
+            .then(({ auth, name, password }) => {
+                if(auth === 'signUp') {
+                    return this.api.signUp({ name, password })
+                        .then(({ userId }) => {
+                            this.initLevel(userId);
+                        });
+                } else if(auth === 'signIn') {
+                    return this.api.signIn({ name, password })
+                        .then(({ userId }) => {
+                            this.locateUser(userId);
+                        });
+                }
             })
             .catch(err => {
                 lineBreak();
@@ -40,12 +48,18 @@ class Game {
                 this.start();
             });
     }
-    initSquare(userId) {
-        this.api.getInitialDesc(userId)
-            .then(square=> {
+    initLevel(userId) {
+        this.api.getLevelIntro(userId)
+            .then(({ intro })=> {
                 lineBreak();                
-                console.log(square.intro.replace('(User Name)', this.user).blue);
+                console.log(intro.blue);
                 this.showOptions(userId);
+            });
+    }
+    locateUser(userId) {
+        this.api.getUserSquare(userId)
+            .then(({ currentSquare })=> {
+                this.assessSquare(userId, currentSquare);
             });
     }
     showOptions(userId) {
@@ -63,7 +77,6 @@ class Game {
                 this.resolveDirection(userId, direction);
             });
     }
-
     resolveDirection(userId, direction) {
         this.api.getUserCoords(userId)
             .then(body => {
@@ -89,7 +102,7 @@ class Game {
                 if(body.currentSquare) {
                     this.assessSquare(userId, body.currentSquare);
                 } else {
-                    console.log('That direction is outside your territory. Please try another.');
+                    console.log('But that direction is outside your territory. You should try another.'.cyan);
                     this.showOptions(userId);
                 }
             });
@@ -108,7 +121,7 @@ class Game {
             });
     }
     compareInventory(userId, squareInfo, itemToMatch) {
-        this.api.getInventory(userId)
+        return this.api.getInventory(userId)
             .then(body => {
                 const itemFilter = body.inventory.filter(obj => obj.item._id === itemToMatch);
                 return itemFilter;
@@ -119,7 +132,7 @@ class Game {
             .then(itemFilter => {
                 if(itemFilter.length) {
                     lineBreak();                    
-                    console.log(`${squareInfo.squareDesc} This is where you found your ${squareInfo.itemHere._id}.`.magenta);
+                    console.log(`${squareInfo.squareDesc} This is where you found your ${squareInfo.itemHere.itemName}.`.magenta);
                     this.showOptions(userId);
                 } else {
                     lineBreak();
@@ -152,7 +165,7 @@ class Game {
     endLevel(userId) {
         this.api.clearInventory(userId)
             .then(() => {
-                return this.api.getUserLevel();
+                return this.api.getUserLevel(userId);
             })
             .then(({ level }) => {
                 const newLevel = level + 1;
@@ -168,7 +181,8 @@ class Game {
                         choices: [{ name:'Yes!', value: 'yes' }]
                     })
                         .then(({ newGame }) => {
-                            if(newGame) this.api.updateUserIfLevelExists(userId, 1);
+                            if(newGame) this.api.updateUserIfLevelExists(userId, 1)
+                                .then(() => this.showOptions(userId));
                         });
                 }
             });
