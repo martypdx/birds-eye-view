@@ -1,6 +1,6 @@
 # Bird's Eye View
 
-This is a text-based adventure game played entirely through the CLI. You play a day in the life of a city crow who's only wish to find a decent meal goes off the rails, and plunges them into the secret world of urban animals both seen and unseen.
+This is a text-based adventure game played entirely through the CLI. Experience a day in the life of a creative city crow whose only wish is to find a decent meal.
 
 ## Requirements
 
