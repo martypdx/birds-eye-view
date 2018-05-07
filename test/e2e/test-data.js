@@ -18,21 +18,26 @@ module.exports = {
             x: 0,
             y: 0
         },
-        squareDesc: 'You are here. You see things.'
+        squareDesc: 'You are here. You see things.',
+        visitedDesc: 'Welcome back.'
+        
     },
     square2Data: {
         coords: {
             x: 1,
             y: 0
         },
-        squareDesc: 'You are here. You see things.'
+        squareDesc: 'You are here. You see things.',
+        visitedDesc: 'Welcome back.'
     },
     level1Data: {
         levelNum: 1,
+        intro: 'You\'re a crow now, (User Name).',
         squares: []
     },
     level2Data: {
         levelNum: 2,
+        intro: 'You\'re a crow now, (User Name).',        
         squares: []
     },
     userData: {
