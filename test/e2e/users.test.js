@@ -99,11 +99,12 @@ describe('User API', () => {
             });
     });
 
-    it('gets initial description', () => {
+    it('gets a customized game introduction', () => {
         return request.get(`/api/users/${user.id}/intro`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body.intro, 'You are here. You see things.');
+                assert.include(body.intro, user.name);
+                assert.include(body.intro, square1.squareDesc);
             });
     });
 
