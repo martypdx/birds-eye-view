@@ -71,18 +71,15 @@ describe('User API', () => {
                 user.inventory = body.inventory;
             });
     });
-
-    it('gets (and populates) inventory', () => {
-        return request.get(`/api/users/${user.id}/inventory`)
+    
+    it('gets (and populates) an item in inventory', () => {
+        return request.get(`/api/users/${user.id}/inventory/${item1._id}`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body.inventory, [{
-                    _id: body.inventory[0]._id,
-                    item: { _id: square1.itemHere, itemName: item1.itemName }
-                }]);
+                assert.deepEqual(body.itemName, item1.itemName);
             });
     });
-
+    
     it('deletes an item from inventory', () => {
         return request.delete(`/api/users/${user.id}/inventory/${item1._id}`)
             .set('Authorization', token)
@@ -99,6 +96,14 @@ describe('User API', () => {
             });
     });
 
+    it('returns a falsey value if an item isn\'t in inventory', () => {
+        return request.get(`/api/users/${user.id}/inventory/${item1._id}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.isNull(body.itemName);
+            });
+    });
+
     it('gets a customized game introduction', () => {
         return request.get(`/api/users/${user.id}/intro`)
             .set('Authorization', token)
@@ -108,11 +113,14 @@ describe('User API', () => {
             });
     });
 
-    it('gets a user\'s current coordinates', () => {
-        return request.get(`/api/users/${user.id}/coords`)
+    it('gets a user\'s current square and coordinates', () => {
+        return request.get(`/api/users/${user.id}/position`)
             .set('Authorization', token)
             .then(({ body }) => {
-                assert.deepEqual(body, square1.coords);
+                assert.deepEqual(body, {
+                    coords: square1.coords,
+                    _id: square1._id
+                });
             });
     });
     
@@ -132,9 +140,17 @@ describe('User API', () => {
             });
     });
 
+    it('returns a falsey value if a user has not visited a square', () => {
+        return request.get(`/api/users/${user.id}/visited/${square2._id}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.notOk(body.visited);
+            });
+    });
+
     it('updates a user\'s square, if one exists in the direction they\'ve tried to move', () => {
         return request.put(`/api/users/${user.id}/square`)
-            .send({ x: 1, y: 0 })
+            .send({ coords: { x: 1, y: 0 }, squareId: square1._id })
             .set('Authorization', token)
             .then(({ body }) => {
                 assert.strictEqual(body.currentSquare, square2._id); 
@@ -143,10 +159,18 @@ describe('User API', () => {
     
     it('returns a falsey value if no square exists', () => {
         return request.put(`/api/users/${user.id}/square`)
-            .send({ x: 2, y: 0 })
+            .send({ coords: { x: 2, y: 0 }, squareId: square2._id })
             .set('Authorization', token)
             .then(({ body }) => {
                 assert.deepEqual(body, { currentSquare: null }); 
+            });
+    });
+
+    it('checks if a user has visited a square', () => {
+        return request.get(`/api/users/${user.id}/visited/${square1._id}`)
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.ok(body.visited);
             });
     });
 
