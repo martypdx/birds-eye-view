@@ -2,6 +2,8 @@
 
 This is a text-based adventure game played entirely through the CLI. Experience a day in the life of a creative city crow whose only wish is to find a decent meal.
 
+// initial commit
+
 ## Requirements
 
 MongoDB, Node.js, and your favorite CLI
